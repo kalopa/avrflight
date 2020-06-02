@@ -15,6 +15,10 @@
 
 #include "flight.h"
 
+#define CALIBRATION_COUNT		2500
+
+uint_t	calibrate_loop;
+
 /*
  * Initialize the gyro. Set up our operating parameters.
  */
@@ -22,6 +26,7 @@ void
 gyro_init(struct control *cp)
 {
 	cp->g_roll =  cp->g_pitch = cp->g_yaw = 0;
+	calibrate_loop = 0;
 }
 
 /*
@@ -32,6 +37,12 @@ gyro_init(struct control *cp)
 void
 gyro_calibrate(struct control *cp)
 {
+	/*
+	 * Finally, drop out of calibration after a certain number of
+	 * passes through the loop.
+	 */
+	if (++calibrate_loop > CALIBRATION_COUNT)
+		set_state(cp, STATE_INFLIGHT);
 }
 
 /*

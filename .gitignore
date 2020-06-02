@@ -2,7 +2,8 @@
 *.d
 
 # Object files
-flight
+flight.elf
+firmware.hex
 *.o
 *.ko
 *.obj

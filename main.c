@@ -14,6 +14,7 @@
 
 #include "flight.h"
 
+uint_t			hbeat;
 struct control	control;
 
 /*
@@ -23,13 +24,11 @@ int
 main()
 {
 	uchar_t hbticks, ledf, secticks;
-	uint_t hbeat = 0x00f7;
 
  	/*
 	 * Do the initialization first...
 	 */
-	control.state = STATE_DISARMED;
-	eeprom_init();
+	set_state(&control, STATE_INIT);
 	clock_init();
 	serial_init();
 	i2c_init();
@@ -42,8 +41,8 @@ main()
 	 * Now calibrate the gyros.
 	 */
 	printf("\nQuadcopter flight controller v0.1.\n");
-	gyro_calibrate(&control);
-	waitf = 0;
+	if (control.state != STATE_ERROR)
+		set_state(&control, STATE_CALIBRATE);
 	hbticks = secticks = 0;
 	while (1) {
 		/*
@@ -56,15 +55,65 @@ main()
 			hbeat = (hbeat << 1) | ledf;
 		}
 		/*
-		 * Read the gyro data, calculate the new ESC values accordingly, and
-		 * implement them.
+		 * What we do next depends on the mode of operation.
 		 */
-		gyro_read(&control);
-		calculate(&control);
-		start_esc_outputs(&control);
+		switch (control.state) {
+		case STATE_ERROR:
+		case STATE_DISARMED:
+			break;
+
+		case STATE_CALIBRATE:
+			gyro_read(&control);
+			gyro_calibrate(&control);
+			break;
+
+		case STATE_IDLE:
+		case STATE_INFLIGHT:
+			/*
+			 * Calculate the new ESC values accordingly, and
+			 * implement them.
+			 */
+			gyro_read(&control);
+			calculate(&control);
+		}
 		/*
-		 * Now wait for the next clock tick (every 4ms).
+		 * Now send the ESC outputs and wait for the next clock
+		 * tick (every 4ms).
 		 */
+		start_esc_outputs(&control);
 		_idle();
+	}
+}
+
+/*
+ *
+ */
+void
+set_state(struct control *cp, uchar_t new_state)
+{
+	cp->state = new_state;
+	printf("State: %d\n", new_state);
+	switch (cp->state) {
+	case STATE_INIT:
+		hbeat = 0xffff;
+		_setled(1);
+		break;
+
+	case STATE_ERROR:
+		hbeat = 0x00ff;
+		break;
+
+	case STATE_CALIBRATE:
+		hbeat = 0x0555;
+		break;
+
+	case STATE_DISARMED:
+		hbeat = 0x0f0f;
+		break;
+
+	case STATE_IDLE:
+	case STATE_INFLIGHT:
+		hbeat = 0x00f7;
+		break;
 	}
 }
