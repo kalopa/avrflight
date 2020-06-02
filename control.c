@@ -4,6 +4,9 @@
  *
  * See the LICENSE file for more info.
  *
+ * Thanks to Graham Agnew for the great advice regarding the programming of the
+ * ESC pulses (interleaved starts, with a single stop - trailing edge).
+ *
  * ABSTRACT
  * This is where the various inputs (radio, gyro, etc) are combined and the ESC
  * values computed. ESC settings are on the scale of 0 to 250, where 0 represents
