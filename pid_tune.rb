@@ -33,10 +33,8 @@ def pid_generate(kp, ki, kd)
   params[1] = iki
   params[2] = ikd
   params[3] = kdiv
-  params[4] = 0
-  params[5] = 0
-  params[6] = umul
-  params[7] = udiv
+  params[4] = umul
+  params[5] = udiv
   params
 end
 
@@ -73,7 +71,7 @@ File.open("promdata.eep", "w") do |f|
         value = data[(offset + i) / 2]
       end
       byte = value & 0xff
-      outstr += "%02X" % (byte)
+      outstr += "%02X" % byte
       cksum += byte
       value >>= 8
     end

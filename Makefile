@@ -29,7 +29,7 @@ eeprom: promdata.eep
 $(BIN):	$(OBJS)
 	$(CC) -o $(BIN) $(LDFLAGS) $(OBJS) $(LIBS)
 
-promdata.eep:
+promdata.eep: pid_tune.rb
 	./pid_tune.rb
 
 $(OBJS): flight.h $(REGVALS)
