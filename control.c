@@ -76,7 +76,7 @@ control_init(struct control *cp)
 void
 calculate(struct control *cp)
 {
-	short error, roll_u, pitch_u, yaw_u;
+	int roll_u, pitch_u, yaw_u;
 
 	/*
 	 * Set the props to idling, unless we're in-flight.
@@ -91,12 +91,9 @@ calculate(struct control *cp)
 	/*
 	 * Compute control outputs using PIDs
 	 */
-	error = 0;
-	roll_u = pidcalc(&cp->p_roll, error);
-	error = 0;
-	pitch_u = pidcalc(&cp->p_pitch, error);
-	error = 0;
-	yaw_u = pidcalc(&cp->p_yaw, error);
+	roll_u = pidcalc(&cp->p_roll, cp->rx_roll - cp->g_roll);
+	pitch_u = pidcalc(&cp->p_pitch, cp->rx_pitch - cp->g_pitch);
+	yaw_u = pidcalc(&cp->p_yaw, cp->rx_yaw - cp->g_yaw);
 	/*
 	 * Adjust each ESC based on control outputs.
 	 */
@@ -111,50 +108,4 @@ calculate(struct control *cp)
 	cp->esc_fl = 50;
 	cp->esc_rr = 100;
 	cp->esc_rl = 250;
-}
-
-/*
- * Compute the end periods for each of the ESCs and then back-fit
- * the start times.
- */
-void
-start_esc_outputs(struct control *cp)
-{
-	uint_t maxval, start_fr, start_fl, start_rr, start_rl;
-	uchar_t port_bits;
-
-	TIMSK1 = 0;
-	PORTD &= 0x0f;
-	if (cp->state < STATE_IDLE)
-		return;
-	/*
-	 * Calculate when we're turning off the ESCs. To figure
-	 * this out, take the highest ESC value from the range. Add
-	 * 250 clocks (the initial 1ms pulse) and then work backwards
-	 * to find the various start times.
-	 */
-	maxval = MAX(cp->esc_fr, MAX(cp->esc_fl, MAX(cp->esc_rl, cp->esc_rr)));
-	start_fr = maxval - (uint_t )cp->esc_fr;
-	start_fl = maxval - (uint_t )cp->esc_fl;
-	start_rl = maxval - (uint_t )cp->esc_rl;
-	start_rr = maxval - (uint_t )cp->esc_rr;
-	/*
-	 * Set the OCR1A time for the turn-off interrupt. Then loop
-	 * through until the timer has hit each start time.
-	 */
-	TCNT1 = 0;
-	OCR1A = maxval + 250;
-	TIMSK1 = (1<<OCIE1A);
-	for (port_bits = 0; port_bits != 0xf0;) {
-		maxval = TCNT1;
-		if (start_fr <= maxval)
-			port_bits |= 0x10;
-		if (start_rl <= maxval)
-			port_bits |= 0x20;
-		if (start_fl <= maxval)
-			port_bits |= 0x40;
-		if (start_rr <= maxval)
-			port_bits |= 0x80;
-		PORTD |= port_bits;
-	}
 }

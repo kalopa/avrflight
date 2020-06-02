@@ -68,10 +68,12 @@ escint:
 	push	r24					; Save the status register
 	in		r24,SREG
 	push	r24
+	sbi		PORTD,2				; Turn on the test point
 	in		r24,PORTD
 	andi	r24,0x0f
 	out		PORTD,r24
 	sts		TIMSK1,r1			; Disable further interrupts
+	cbi		PORTD,2				; Turn on the test point
 	rjmp	end_int
 	.endfunc
 ;
@@ -149,11 +151,8 @@ bssl4:
 	.global	_idle
 	.func	_idle
 _idle:
-	in		r24,PORTD			; Set PORTD3=1 for idle timing
-	ori		r24,0x08
-	out		PORTD,r24
+	cbi		PORTD,3				; Turn off the BUSY bit
 	wdr							; Clear the watchdog timer
-;
 	lds		r24,waitf
 	tst		r24
 	brne	idle1
@@ -161,9 +160,7 @@ _idle:
 	rjmp	_idle
 ;
 idle1:
-	in		r24,PORTD			; Set PORTD3=0 (end timer)
-	andi	r24,0xf7
-	out		PORTD,r24
+	sbi		PORTD,3				; Turn on the BUSY bit
 	cli							; Decrement waitf (thread-safe)
 	lds		r24,waitf
 	subi	r24,1

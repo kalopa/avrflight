@@ -53,4 +53,5 @@ void
 show_rx_data(struct control *cp)
 {
 	printf("T:%dR:%dP:%dY:%d\n", cp->rx_throttle, cp->rx_roll, cp->rx_pitch, cp->rx_yaw);
+	PORTD |= 0x08;
 }

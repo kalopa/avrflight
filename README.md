@@ -50,7 +50,7 @@ ports for control and data:
 | C5 | ADC5 | O | A5 | SCK | I2C Interface (Clock) |
 | D0 | RX | I | RX | DSM | Spektrum Receive Data |
 | D1 | TX | O | TX | TXD | USB Transmit Data |
-| D2 | INT0 | O | D2 | | |
+| D2 | INT0 | O | D2 | TPOINT | Test Point |
 | D3 | OC2B | O | D3 | IDLE | Indicate time in the IDLE loop |
 | D4 | T0 | O | D4 | ESC_FR | Front-Right ESC |
 | D5 | OC0B | O | D5 | ESC_RL | Rear-Left ESC |

@@ -92,7 +92,6 @@ void
 set_state(struct control *cp, uchar_t new_state)
 {
 	cp->state = new_state;
-	printf("State: %d\n", new_state);
 	switch (cp->state) {
 	case STATE_INIT:
 		hbeat = 0xffff;
@@ -104,7 +103,7 @@ set_state(struct control *cp, uchar_t new_state)
 		break;
 
 	case STATE_CALIBRATE:
-		hbeat = 0x0555;
+		hbeat = 0xf555;
 		break;
 
 	case STATE_DISARMED:
